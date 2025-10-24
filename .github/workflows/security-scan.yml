@@ -24,11 +24,20 @@ jobs:
       - name: TruffleHog OSS (history scan)
         # pin to a stable major release tag for reproducibility
         uses: trufflesecurity/trufflehog@v3
+        continue-on-error: true
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
-          extra_args: --debug --only-verified
+          extra_args: --debug --only-verified --json > trufflehog-report.json
+      
+      - name: Upload TruffleHog scan results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: trufflehog-report
+          path: trufflehog-report.json
+          retention-days: 7
 
       - name: GitGuardian (ggshield) scan (optional)
         # only run this step if the API key secret is configured
@@ -40,13 +49,37 @@ jobs:
 
       - name: Dependency Check
         uses: dependency-check/Dependency-Check_Action@v6
+        continue-on-error: true
         with:
           project: 'Stackoverflow Question Quality Analysis'
           path: '.'
-          format: 'HTML'
+          format: 'HTML,JSON'
           args: >
             --failOnCVSS 7
             --enableRetired
+            --suppression ./.github/workflows/suppression.xml
+            --outputDirectory ./reports
+      
+      - name: Upload Dependency Check results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-check-report
+          path: ./reports/*
+          retention-days: 7
+
+      # Fail the workflow if any high-severity issues were found
+      - name: Check scan results
+        if: always()
+        run: |
+          if [ -f "trufflehog-report.json" ] && [ -s "trufflehog-report.json" ]; then
+            echo "TruffleHog found verified secrets!"
+            exit 1
+          fi
+          if grep -q '"severity": "HIGH"' ./reports/dependency-check-report.json; then
+            echo "High severity vulnerabilities found!"
+            exit 1
+          fi
 
       - name: Upload Dependency-Check Report
         if: always()

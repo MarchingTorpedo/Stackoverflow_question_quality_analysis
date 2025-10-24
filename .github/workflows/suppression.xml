@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <!-- Add specific suppressions here if needed -->
+    <!-- Example:
+    <suppress>
+        <notes>False positive for Stack Overflow dataset</notes>
+        <filePath regex="true">.*\/train\.csv</filePath>
+        <cpe>cpe:/a:stack:overflow</cpe>
+    </suppress>
+    -->
+</suppressions>
