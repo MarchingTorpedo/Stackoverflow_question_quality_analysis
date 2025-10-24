@@ -31,5 +31,5 @@ ENV/
 .vscode/
 *.code-workspace
 
-# Dataset
-*.csv
+# Keep dataset files
+# *.csv
