@@ -1,0 +1,31 @@
+{
+  "total_findings": 2,
+  "by_reason": [
+    {
+      "reason": "High Entropy",
+      "count": 2,
+      "samples": [
+        {
+          "path": "stackoverflow_question_quality_analysis.ipynb",
+          "sample_strings": [
+            "iVBORw...SuQmCC",
+            "iVBORw...Jggg==",
+            "iVBORw...Jggg==",
+            "iVBORw...SuQmCC",
+            "iVBORw...5CYII="
+          ]
+        },
+        {
+          "path": "train.csv",
+          "sample_strings": [
+            "publis...onents",
+            "83d8cc...9e605d",
+            "245bba...be85ed",
+            "245bba...be85ed",
+            "abcdef...uvwxyz"
+          ]
+        }
+      ]
+    }
+  ]
+}
