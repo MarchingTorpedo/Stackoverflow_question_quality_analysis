@@ -11,30 +11,35 @@ on:
 jobs:
   security-scan:
     runs-on: ubuntu-latest
+    # Use least-privilege for the runner token
+    permissions:
+      contents: read
+      pull-requests: read
+      security-events: write
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: TruffleHog OSS
-        uses: trufflesecurity/trufflehog@main
+      - name: TruffleHog OSS (history scan)
+        # pin to a stable major release tag for reproducibility
+        uses: trufflesecurity/trufflehog@v3
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
           extra_args: --debug --only-verified
 
-      - name: GitGuardian scan
-        uses: GitGuardian/ggshield-action@master
-        env:
-          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
-          GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
-          GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+      - name: GitGuardian (ggshield) scan (optional)
+        # only run this step if the API key secret is configured
+        if: ${{ secrets.GITGUARDIAN_API_KEY != '' }}
+        uses: GitGuardian/ggshield-action@v1
+        with:
+          # rely on the action to pick up the API key from the secret
+          api_key: ${{ secrets.GITGUARDIAN_API_KEY }}
 
       - name: Dependency Check
-        uses: dependency-check/Dependency-Check_Action@main
+        uses: dependency-check/Dependency-Check_Action@v6
         with:
           project: 'Stackoverflow Question Quality Analysis'
           path: '.'
@@ -42,3 +47,10 @@ jobs:
           args: >
             --failOnCVSS 7
             --enableRetired
+
+      - name: Upload Dependency-Check Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: dependency-check-report.html
